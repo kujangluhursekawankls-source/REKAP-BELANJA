@@ -22,6 +22,16 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [dataSekolahList, setDataSekolahList] = useState<string[]>([]);
   const [scriptUrl, setScriptUrl] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlFromQuery = params.get('scriptUrl');
+      if (urlFromQuery) {
+        localStorage.setItem(SCRIPT_URL_KEY, urlFromQuery);
+        // Clean up URL query parameter without full page reload
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return urlFromQuery;
+      }
+    }
     return localStorage.getItem(SCRIPT_URL_KEY) || '';
   });
 
