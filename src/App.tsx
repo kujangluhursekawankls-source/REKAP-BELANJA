@@ -49,18 +49,78 @@ export default function App() {
     setToast({ message, type });
   };
 
+  // Resilient API Call Helper with Direct Google Apps Script Fallback
+  const callAppsScriptApi = async (
+    endpoint: string,
+    sUrl: string,
+    method: 'GET' | 'POST' = 'GET',
+    body?: any
+  ): Promise<any> => {
+    const targetScriptUrl = sUrl && sUrl.startsWith('https://script.google.com/macros/s/')
+      ? sUrl
+      : DEFAULT_SCRIPT_URL;
+
+    // 1. First try Express Backend API Proxy
+    try {
+      const apiPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      const options: RequestInit = { method };
+      
+      if (method === 'GET') {
+        const fullUrl = `${apiPath}?scriptUrl=${encodeURIComponent(targetScriptUrl)}`;
+        const res = await fetch(fullUrl);
+        const text = await res.text();
+        if (text && !text.includes('<!DOCTYPE') && !text.includes('<html') && !text.includes('NOT_FOUND')) {
+          try {
+            return JSON.parse(text);
+          } catch (_) {}
+        }
+      } else {
+        const res = await fetch(apiPath, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...body, scriptUrl: targetScriptUrl }),
+        });
+        const text = await res.text();
+        if (text && !text.includes('<!DOCTYPE') && !text.includes('<html') && !text.includes('NOT_FOUND')) {
+          try {
+            return JSON.parse(text);
+          } catch (_) {}
+        }
+      }
+    } catch (apiErr) {
+      console.warn('Local Express proxy failed, trying direct Apps Script call:', apiErr);
+    }
+
+    // 2. Direct Fallback to Google Apps Script Web App
+    try {
+      if (method === 'GET') {
+        const gasUrl = new URL(targetScriptUrl);
+        if (body?.action) {
+          gasUrl.searchParams.set('action', body.action);
+        }
+        const gasRes = await fetch(gasUrl.toString(), { redirect: 'follow' });
+        const gasText = await gasRes.text();
+        return JSON.parse(gasText);
+      } else {
+        const gasRes = await fetch(targetScriptUrl, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(body),
+        });
+        const gasText = await gasRes.text();
+        return JSON.parse(gasText);
+      }
+    } catch (gasErr: any) {
+      throw new Error('Gagal terhubung ke Google Sheets: ' + (gasErr.message || 'Koneksi terputus'));
+    }
+  };
+
   // Fetch Data Sekolah from API
   const fetchDataSekolah = useCallback(async (url: string) => {
     try {
-      const res = await fetch(`/api/data-sekolah?scriptUrl=${encodeURIComponent(url)}`);
-      const text = await res.text();
-      let json: any = {};
-      try {
-        json = JSON.parse(text);
-      } catch (_) {
-        return;
-      }
-      if (json.success && Array.isArray(json.data)) {
+      const json = await callAppsScriptApi('/api/data-sekolah', url, 'GET', { action: 'getDataSekolah' });
+      if (json && json.success && Array.isArray(json.data)) {
         setDataSekolahList(json.data);
       }
     } catch (err) {
@@ -72,17 +132,8 @@ export default function App() {
   const fetchRekapBelanja = useCallback(async (url: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/rekap-belanja?scriptUrl=${encodeURIComponent(url)}`);
-      const text = await res.text();
-      let json: any = {};
-      try {
-        json = JSON.parse(text);
-      } catch (parseErr) {
-        console.error('JSON parse error on rekap-belanja:', text);
-        setTransactions([]);
-        return;
-      }
-      if (json.success && Array.isArray(json.data)) {
+      const json = await callAppsScriptApi('/api/rekap-belanja', url, 'GET', { action: 'getRekapBelanja' });
+      if (json && json.success && Array.isArray(json.data)) {
         setTransactions(json.data);
       } else {
         setTransactions([]);
@@ -97,13 +148,8 @@ export default function App() {
 
   // Load data whenever scriptUrl changes or component mounts
   useEffect(() => {
-    if (scriptUrl) {
-      fetchDataSekolah(scriptUrl);
-      fetchRekapBelanja(scriptUrl);
-    } else {
-      setTransactions([]);
-      setDataSekolahList([]);
-    }
+    fetchDataSekolah(scriptUrl);
+    fetchRekapBelanja(scriptUrl);
   }, [scriptUrl, fetchDataSekolah, fetchRekapBelanja]);
 
   // Handle Save New Script URL
@@ -122,30 +168,10 @@ export default function App() {
     fileName: string;
     mimeType: string;
   }) => {
-    if (!scriptUrl) {
-      setIsSettingsModalOpen(true);
-      throw new Error('URL Google Apps Script belum dikonfigurasi. Sila buka Pengaturan Integrasi terlebih dahulu.');
-    }
+    const result = await callAppsScriptApi('/api/tambah-belanja', scriptUrl, 'POST', payload);
 
-    const response = await fetch('/api/tambah-belanja', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...payload,
-        scriptUrl,
-      }),
-    });
-
-    const text = await response.text();
-    let result: any = {};
-    try {
-      result = JSON.parse(text);
-    } catch (_) {
-      throw new Error('Respon dari server bukan JSON valid: ' + text.substring(0, 100));
-    }
-
-    if (!result.success) {
-      throw new Error(result.message || 'Gagal menyimpan transaksi ke Google Sheets');
+    if (!result || !result.success) {
+      throw new Error(result?.message || 'Gagal menyimpan transaksi ke Google Sheets');
     }
 
     showToast('Belanja berhasil disimpan.', 'success');
@@ -164,30 +190,13 @@ export default function App() {
     mimeType?: string;
     existingFotoUrl: string;
   }) => {
-    if (!scriptUrl) {
-      setIsSettingsModalOpen(true);
-      throw new Error('URL Google Apps Script belum dikonfigurasi.');
-    }
-
-    const response = await fetch('/api/edit-belanja', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...payload,
-        scriptUrl,
-      }),
+    const result = await callAppsScriptApi('/api/edit-belanja', scriptUrl, 'POST', {
+      ...payload,
+      action: 'editBelanja',
     });
 
-    const text = await response.text();
-    let result: any = {};
-    try {
-      result = JSON.parse(text);
-    } catch (_) {
-      throw new Error('Respon dari server bukan JSON valid: ' + text.substring(0, 100));
-    }
-
-    if (!result.success) {
-      throw new Error(result.message || 'Gagal memperbarui transaksi');
+    if (!result || !result.success) {
+      throw new Error(result?.message || 'Gagal memperbarui transaksi');
     }
 
     showToast(`Transaksi #${payload.no} berhasil diperbarui.`, 'success');
@@ -205,27 +214,13 @@ export default function App() {
     if (!deletingTransaction) return;
     const { no } = deletingTransaction;
 
-    if (!scriptUrl) {
-      setIsSettingsModalOpen(true);
-      throw new Error('URL Google Apps Script belum dikonfigurasi.');
-    }
-
-    const response = await fetch('/api/hapus-belanja', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ no, scriptUrl }),
+    const result = await callAppsScriptApi('/api/hapus-belanja', scriptUrl, 'POST', {
+      no,
+      action: 'hapusBelanja',
     });
 
-    const text = await response.text();
-    let result: any = {};
-    try {
-      result = JSON.parse(text);
-    } catch (_) {
-      throw new Error('Respon dari server bukan JSON valid: ' + text.substring(0, 100));
-    }
-
-    if (!result.success) {
-      throw new Error(result.message || 'Gagal menghapus transaksi dari Google Sheets');
+    if (!result || !result.success) {
+      throw new Error(result?.message || 'Gagal menghapus transaksi dari Google Sheets');
     }
 
     showToast(`Transaksi #${no} dan foto nota di Google Drive berhasil dihapus.`, 'success');

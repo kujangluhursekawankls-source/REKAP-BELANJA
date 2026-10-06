@@ -10,6 +10,17 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// CORS middleware
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGqnjLhv1uCzI1vkT7Nvw1RWl1riVY-pf06Q9Psa8rrYypMJE2dvwFUjYWicPRGFxj8g/exec';
 
 // Helper to sanitize and validate Google Apps Script URL
@@ -219,6 +230,14 @@ app.post('/api/hapus-belanja', async (req, res) => {
       message: error.message || 'Gagal menghapus transaksi dari Google Sheets'
     });
   }
+});
+
+// Explicit API Catch-All Route (Prevents 404 HTML fallthrough)
+app.all('/api/*', (req, res) => {
+  return res.status(200).json({
+    success: false,
+    message: `API Route ${req.originalUrl} tidak ditemukan di Express server.`
+  });
 });
 
 async function start() {
