@@ -23,7 +23,12 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [dataSekolahList, setDataSekolahList] = useState<string[]>([]);
   const [scriptUrl, setScriptUrl] = useState<string>(() => {
-    return localStorage.getItem(SCRIPT_URL_KEY) || DEFAULT_SCRIPT_URL;
+    const stored = localStorage.getItem(SCRIPT_URL_KEY);
+    if (stored && stored.startsWith('https://script.google.com/macros/s/')) {
+      return stored;
+    }
+    localStorage.removeItem(SCRIPT_URL_KEY);
+    return DEFAULT_SCRIPT_URL;
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);

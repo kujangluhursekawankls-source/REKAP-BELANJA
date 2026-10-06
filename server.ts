@@ -12,10 +12,13 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGqnjLhv1uCzI1vkT7Nvw1RWl1riVY-pf06Q9Psa8rrYypMJE2dvwFUjYWicPRGFxj8g/exec';
 
-// Helper to sanitize Google Apps Script URL
+// Helper to sanitize and validate Google Apps Script URL
 function getAppsScriptUrl(reqUrl?: string): string {
-  if (reqUrl && reqUrl.trim().length > 0) {
-    return reqUrl.trim();
+  if (reqUrl && typeof reqUrl === 'string') {
+    const trimmed = reqUrl.trim();
+    if (trimmed.startsWith('https://script.google.com/macros/s/')) {
+      return trimmed;
+    }
   }
   return process.env.VITE_APPS_SCRIPT_URL || process.env.APPS_SCRIPT_URL || DEFAULT_APPS_SCRIPT_URL;
 }
