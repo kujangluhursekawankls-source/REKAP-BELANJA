@@ -1,0 +1,6 @@
+{
+  "name": "Rekap Belanja CV",
+  "description": "Aplikasi PWA Rekap Belanja CV untuk pencatatan transaksi belanja sekolah dan penyimpanan foto nota ke Google Sheets dan Google Drive.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
