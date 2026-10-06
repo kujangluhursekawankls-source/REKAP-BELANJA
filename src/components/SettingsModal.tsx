@@ -15,7 +15,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const [url, setUrl] = useState(currentScriptUrl);
   const [copiedScript, setCopiedScript] = useState(false);
-  const [copiedSyncLink, setCopiedSyncLink] = useState(false);
   const [activeTab, setActiveTab] = useState<'url' | 'script'>('url');
 
   const handleSave = (e: React.FormEvent) => {
@@ -28,14 +27,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     navigator.clipboard.writeText(APPS_SCRIPT_CODE);
     setCopiedScript(true);
     setTimeout(() => setCopiedScript(false), 2000);
-  };
-
-  const handleCopySyncLink = () => {
-    if (!url) return;
-    const syncUrl = `${window.location.origin}/?scriptUrl=${encodeURIComponent(url)}`;
-    navigator.clipboard.writeText(syncUrl);
-    setCopiedSyncLink(true);
-    setTimeout(() => setCopiedSyncLink(false), 2500);
   };
 
   return (
@@ -106,28 +97,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   Masukkan URL Web App hasil deploy Apps Script Google Sheets Anda.
                 </p>
               </div>
-
-              {/* 1-Click Sync Sharing Card */}
-              {url && (
-                <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 p-3.5 border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-bold text-blue-900">
-                      📲 Link Pindah HP / Bagikan Teman (1-Klik Otomatis)
-                    </p>
-                    <p className="text-[11px] text-blue-700">
-                      Kirim link ini ke WA HP baru Anda. Saat dibuka di HP baru, database langsung terhubung otomatis!
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleCopySyncLink}
-                    className="flex items-center gap-1.5 shrink-0 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 text-xs font-bold shadow-xs transition"
-                  >
-                    {copiedSyncLink ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-                    <span>{copiedSyncLink ? 'Link Tersalin!' : 'Salin Link Auto-Sync'}</span>
-                  </button>
-                </div>
-              )}
 
               {/* Step-by-step instructions */}
               <div className="rounded-xl bg-slate-50 p-4 border border-slate-200/80 space-y-2.5 text-xs">

@@ -16,23 +16,14 @@ import { Toast } from './components/Toast';
 import { AlertCircle, Link2 } from 'lucide-react';
 
 const SCRIPT_URL_KEY = 'REKAP_BELANJA_SCRIPT_URL';
+export const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGqnjLhv1uCzI1vkT7Nvw1RWl1riVY-pf06Q9Psa8rrYypMJE2dvwFUjYWicPRGFxj8g/exec';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'rekap'>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [dataSekolahList, setDataSekolahList] = useState<string[]>([]);
   const [scriptUrl, setScriptUrl] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const urlFromQuery = params.get('scriptUrl');
-      if (urlFromQuery) {
-        localStorage.setItem(SCRIPT_URL_KEY, urlFromQuery);
-        // Clean up URL query parameter without full page reload
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return urlFromQuery;
-      }
-    }
-    return localStorage.getItem(SCRIPT_URL_KEY) || '';
+    return localStorage.getItem(SCRIPT_URL_KEY) || DEFAULT_SCRIPT_URL;
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
