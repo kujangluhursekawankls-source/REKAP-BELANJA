@@ -1,6 +1,5 @@
 import React from 'react';
 import { BookOpen, LayoutDashboard, ReceiptText, Settings, Coffee } from 'lucide-react';
-import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   activeTab: 'dashboard' | 'rekap';
@@ -47,9 +46,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Action Buttons Right Header */}
           <div className="flex items-center gap-2">
             
-            {/* Install PWA Button */}
-            <PWAInstallButton />
-
             {/* Coffee Appreciation Button */}
             <button
               onClick={onOpenKopiModal}
