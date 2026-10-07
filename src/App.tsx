@@ -373,7 +373,7 @@ export default function App() {
       )}
 
       <footer className="mt-12 border-t border-slate-200/80 py-6 text-center text-xs text-slate-400">
-        <p>Rekap Belanja CV — PWA Sistem Pencatatan Belanja Sekolah & Foto Nota</p>
+        <p>CV ARZLAN ADYATAMA — PWA Sistem Pencatatan Belanja Sekolah & Foto Nota</p>
       </footer>
 
     </div>

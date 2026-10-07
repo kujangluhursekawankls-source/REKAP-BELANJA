@@ -51,7 +51,8 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const schoolInputRef = useRef<HTMLInputElement>(null);
 
   // Filter school recommendations based on user text input
@@ -286,8 +287,9 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
               FOTO NOTA <span className="text-rose-500">*</span>
             </label>
 
+            {/* Hidden Input 1: Kamera HP */}
             <input
-              ref={fileInputRef}
+              ref={cameraInputRef}
               type="file"
               accept="image/*"
               capture="environment"
@@ -295,18 +297,51 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
               className="hidden"
             />
 
+            {/* Hidden Input 2: Galeri HP (Tanpa capture) */}
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoSelect}
+              className="hidden"
+            />
+
             {!fotoPreview ? (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100/80 cursor-pointer transition text-center space-y-2 group"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 group-hover:scale-105 transition">
-                  <Camera className="w-6 h-6" />
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2.5">
+                  {/* Button 1: Galeri HP */}
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/60 hover:bg-blue-100/80 active:scale-95 transition text-center space-y-1.5 group"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs group-hover:scale-105 transition">
+                      <ImageIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-blue-900">🖼️ GALERI HP</p>
+                      <p className="text-[10px] font-semibold text-blue-600 mt-0.5">Pilih Foto dari Galeri</p>
+                    </div>
+                  </button>
+
+                  {/* Button 2: Kamera HP */}
+                  <button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100/80 active:scale-95 transition text-center space-y-1.5 group"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white shadow-xs group-hover:scale-105 transition">
+                      <Camera className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-800">📸 KAMERA HP</p>
+                      <p className="text-[10px] font-semibold text-slate-500 mt-0.5">Foto Langsung</p>
+                    </div>
+                  </button>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-800">Ambil Foto Kamera / Pilih Galeri</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Format: JPG, JPEG, PNG, WEBP</p>
-                </div>
+                <p className="text-[11px] text-slate-400 text-center">
+                  Format yang didukung: JPG, JPEG, PNG, WEBP
+                </p>
               </div>
             ) : (
               <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 text-white p-2">
@@ -315,17 +350,33 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
                   alt="Preview Nota"
                   className="w-full h-48 object-contain rounded-xl bg-slate-950"
                 />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFotoBase64('');
-                    setFotoPreview('');
-                  }}
-                  className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white backdrop-blur-xs"
-                  title="Ganti Foto"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <div className="absolute top-4 right-4 flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-md transition"
+                  >
+                    🖼️ Galeri
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold shadow-md transition"
+                  >
+                    📸 Kamera
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFotoBase64('');
+                      setFotoPreview('');
+                    }}
+                    className="p-1 rounded-full bg-rose-600 text-white shadow-md hover:bg-rose-700 transition"
+                    title="Hapus Foto"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
                 <div className="p-2 text-center text-xs font-medium text-slate-300 truncate">
                   {fotoFileName || 'Foto Nota Siap Diupload'}
                 </div>

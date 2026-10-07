@@ -27,6 +27,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in">
       
+      {/* Brand Company Header Card */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-rose-950 rounded-3xl p-5 text-white shadow-xl flex items-center gap-4 relative overflow-hidden border border-slate-700/50">
+        <div className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl overflow-hidden bg-slate-950 p-1 border border-rose-500/40 shadow-2xl flex items-center justify-center">
+          <img
+            src="/app-logo.png"
+            alt="CV ARZLAN ADYATAMA Logo"
+            className="h-full w-full object-contain rounded-xl"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = 'none';
+            }}
+          />
+        </div>
+        <div className="space-y-1 min-w-0">
+          <span className="inline-block px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-extrabold uppercase tracking-wider border border-rose-500/30">
+            Aplikasi Resmi
+          </span>
+          <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight truncate">
+            CV ARZLAN ADYATAMA
+          </h2>
+          <p className="text-xs text-slate-300 leading-snug">
+            Sistem Rekap Belanja Sekolah, Pengadaan & Penyimpanan Foto Nota
+          </p>
+        </div>
+      </div>
+
       {/* 3 Main Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         

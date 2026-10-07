@@ -23,16 +23,23 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-16 gap-2">
           
           {/* Brand & Title */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white font-black text-lg shadow-md shadow-blue-500/20">
-              CV
+          <div className="flex items-center gap-2.5">
+            <div className="h-10 w-10 shrink-0 rounded-xl overflow-hidden bg-slate-900 shadow-md border border-slate-200/80 p-0.5 flex items-center justify-center">
+              <img
+                src="/app-logo.png"
+                alt="CV ARZLAN ADYATAMA"
+                className="h-full w-full object-contain rounded-lg"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
             </div>
             <div>
-              <h1 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
-                Rekap Belanja CV
+              <h1 className="text-base sm:text-lg font-black text-slate-900 leading-tight tracking-tight">
+                CV ARZLAN ADYATAMA
               </h1>
               <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
-                Pencatatan Belanja Sekolah & Foto Nota
+                Sistem Rekap Belanja Sekolah & Foto Nota
               </p>
             </div>
           </div>

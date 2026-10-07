@@ -63,7 +63,8 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   // Filter school recommendations
   useEffect(() => {
@@ -283,11 +284,21 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
               FOTO NOTA (Opsional ganti)
             </label>
 
+            {/* Hidden Input 1: Kamera HP */}
             <input
-              ref={fileInputRef}
+              ref={cameraInputRef}
               type="file"
               accept="image/*"
               capture="environment"
+              onChange={handlePhotoSelect}
+              className="hidden"
+            />
+
+            {/* Hidden Input 2: Galeri HP (Tanpa capture) */}
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
               onChange={handlePhotoSelect}
               className="hidden"
             />
@@ -299,21 +310,54 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
                   alt="Preview Nota"
                   className="w-full h-44 object-contain rounded-xl bg-slate-950"
                 />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-4 right-4 px-3 py-1.5 rounded-xl bg-blue-600/90 hover:bg-blue-600 text-white text-xs font-semibold backdrop-blur-xs shadow-md transition"
-                >
-                  Ganti Foto Baru
-                </button>
+                <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition"
+                  >
+                    🖼️ Pilih Galeri
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shadow-md transition"
+                  >
+                    📸 Kamera
+                  </button>
+                </div>
               </div>
             ) : (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer transition text-center space-y-1"
-              >
-                <Camera className="w-6 h-6 text-blue-600" />
-                <p className="text-xs font-bold text-slate-800">Pilih / Ambil Foto Nota Baru</p>
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* Button 1: Galeri HP */}
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/60 hover:bg-blue-100/80 active:scale-95 transition text-center space-y-1.5 group"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs group-hover:scale-105 transition">
+                    <ImageIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-blue-900">🖼️ GALERI HP</p>
+                    <p className="text-[10px] font-semibold text-blue-600 mt-0.5">Pilih dari Galeri</p>
+                  </div>
+                </button>
+
+                {/* Button 2: Kamera HP */}
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100/80 active:scale-95 transition text-center space-y-1.5 group"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white shadow-xs group-hover:scale-105 transition">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-800">📸 KAMERA HP</p>
+                    <p className="text-[10px] font-semibold text-slate-500 mt-0.5">Foto Langsung</p>
+                  </div>
+                </button>
               </div>
             )}
           </div>
