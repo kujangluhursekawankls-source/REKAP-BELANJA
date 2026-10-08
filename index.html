@@ -17,6 +17,75 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <script>
+      (function() {
+        // Prevent Vite HMR WebSocket connection failure in environments where HMR is disabled
+        var OrigWebSocket = window.WebSocket;
+        if (OrigWebSocket) {
+          window.WebSocket = function(url, protocols) {
+            var urlStr = String(url || '');
+            if (
+              protocols === 'vite-hmr' ||
+              urlStr.includes('vite-hmr') ||
+              urlStr.includes('token=')
+            ) {
+              var fakeWs = new EventTarget();
+              fakeWs.readyState = 1;
+              fakeWs.OPEN = 1;
+              fakeWs.CLOSED = 3;
+              fakeWs.CLOSING = 2;
+              fakeWs.CONNECTING = 0;
+              fakeWs.url = urlStr;
+              fakeWs.protocol = 'vite-hmr';
+              fakeWs.bufferedAmount = 0;
+              fakeWs.extensions = '';
+              fakeWs.binaryType = 'blob';
+              fakeWs.send = function() {};
+              fakeWs.close = function() {};
+              setTimeout(function() {
+                fakeWs.dispatchEvent(new Event('open'));
+              }, 10);
+              return fakeWs;
+            }
+            return new OrigWebSocket(url, protocols);
+          };
+          window.WebSocket.prototype = OrigWebSocket.prototype;
+          window.WebSocket.OPEN = OrigWebSocket.OPEN;
+          window.WebSocket.CLOSED = OrigWebSocket.CLOSED;
+          window.WebSocket.CLOSING = OrigWebSocket.CLOSING;
+          window.WebSocket.CONNECTING = OrigWebSocket.CONNECTING;
+        }
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event.reason;
+          var msg = reason && (reason.message || String(reason));
+          var stack = reason && (reason.stack || '');
+          if (
+            (msg && (msg.includes('WebSocket') || msg.includes('vite'))) ||
+            (stack && (stack.includes('createWebSocketModuleRunnerTransport') || stack.includes('@vite/client')))
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        }, true);
+
+        window.addEventListener('error', function(event) {
+          var msg = event.message || '';
+          var filename = event.filename || '';
+          var stack = event.error && event.error.stack ? event.error.stack : '';
+          if (
+            msg.includes('WebSocket') ||
+            filename.includes('@vite/client') ||
+            stack.includes('createWebSocketModuleRunnerTransport') ||
+            stack.includes('@vite/client')
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-700 overflow-x-hidden">
     <div id="root"></div>
