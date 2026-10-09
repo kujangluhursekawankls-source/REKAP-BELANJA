@@ -175,6 +175,13 @@ export default function App() {
     }
 
     showToast('Belanja berhasil disimpan.', 'success');
+    if (result && result.data && result.data.no) {
+      try {
+        const dates = JSON.parse(localStorage.getItem('REKAP_BELANJA_TX_DATES') || '{}');
+        dates[result.data.no] = new Date().toISOString();
+        localStorage.setItem('REKAP_BELANJA_TX_DATES', JSON.stringify(dates));
+      } catch (_) {}
+    }
     fetchRekapBelanja(scriptUrl);
     fetchDataSekolah(scriptUrl);
   };

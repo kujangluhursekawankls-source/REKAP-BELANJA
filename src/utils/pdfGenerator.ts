@@ -232,7 +232,14 @@ export function generateRekapPDF(transactions: Transaction[]): PDFGenerationResu
   const blob = doc.output('blob');
   const blobUrl = URL.createObjectURL(blob);
 
-  // Attempt download using doc.save first, followed by anchor fallback without target="_blank"
+  // 1. Langsung View (Buka pratinjau dokumen PDF di tab baru browser)
+  try {
+    window.open(blobUrl, '_blank');
+  } catch (openErr) {
+    console.warn('Direct view open failed:', openErr);
+  }
+
+  // 2. Langsung Download file PDF ke perangkat
   try {
     doc.save(fileName);
   } catch (saveErr) {
