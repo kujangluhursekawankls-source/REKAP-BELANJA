@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Camera, AlertCircle, Building2, Image as ImageIcon } from 'lucide-react';
+import { X, Camera, AlertCircle, Building2, Image as ImageIcon, Calendar } from 'lucide-react';
 import { Transaction } from '../types';
 import { formatNumberWithDots, parseRupiahInput, generateReceiptFileName, formatRupiah, getGoogleDriveDirectImageUrl } from '../utils/googleDrive';
 
@@ -11,6 +11,7 @@ interface EditBelanjaModalProps {
     namaSekolah: string;
     kategori: string;
     jumlah: number;
+    tanggal?: string;
     fotoBase64?: string;
     fileName?: string;
     mimeType?: string;
@@ -39,6 +40,9 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
   const [namaSekolah, setNamaSekolah] = useState(transaction.namaSekolah || '');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSchools, setFilteredSchools] = useState<string[]>([]);
+
+  const initialTanggal = transaction.tanggal || new Date().toISOString().split('T')[0];
+  const [tanggal, setTanggal] = useState(initialTanggal);
 
   const isCustomCategory = !CATEGORY_OPTIONS.includes(transaction.kategori || '');
   const [selectedCategory, setSelectedCategory] = useState(
@@ -109,6 +113,20 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
     reader.readAsDataURL(file);
   };
 
+  const triggerCamera = () => {
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+      cameraInputRef.current.click();
+    }
+  };
+
+  const triggerGallery = () => {
+    if (galleryInputRef.current) {
+      galleryInputRef.current.value = '';
+      galleryInputRef.current.click();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -118,6 +136,10 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
 
     if (!finalNamaSekolah) {
       setErrorMsg('Nama Sekolah wajib diisi.');
+      return;
+    }
+    if (!tanggal) {
+      setErrorMsg('Tanggal Transaksi wajib diisi.');
       return;
     }
     if (!finalKategori) {
@@ -130,7 +152,7 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
     }
 
     const autoFileName = newFotoBase64
-      ? generateReceiptFileName(transaction.no, finalNamaSekolah, finalKategori)
+      ? generateReceiptFileName(transaction.no, finalNamaSekolah, finalKategori, tanggal)
       : '';
 
     try {
@@ -140,6 +162,7 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
         namaSekolah: finalNamaSekolah,
         kategori: finalKategori,
         jumlah: jumlahNumeric,
+        tanggal,
         fotoBase64: newFotoBase64 || undefined,
         fileName: autoFileName || undefined,
         mimeType: fotoMimeType,
@@ -220,7 +243,27 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
             )}
           </div>
 
-          {/* 2. KATEGORI BELANJA */}
+          {/* 2. TANGGAL TRANSAKSI */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              TANGGAL TRANSAKSI <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <Calendar className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
+              <input
+                type="date"
+                value={tanggal}
+                onChange={(e) => setTanggal(e.target.value)}
+                required
+                className="w-full rounded-xl border border-slate-200 pl-10 pr-3.5 py-2.5 text-sm font-semibold text-slate-800 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-slate-500">
+              {tanggal ? new Date(tanggal + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Pilih tanggal'}
+            </p>
+          </div>
+
+          {/* 3. KATEGORI BELANJA */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               KATEGORI BELANJA <span className="text-rose-500">*</span>
@@ -284,7 +327,7 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
               FOTO NOTA (Opsional ganti)
             </label>
 
-            {/* Hidden Input 1: Kamera HP */}
+            {/* Hidden Input 1: Kamera HP (Capture environment untuk direct kamera HP) */}
             <input
               ref={cameraInputRef}
               type="file"
@@ -294,11 +337,11 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
               className="hidden"
             />
 
-            {/* Hidden Input 2: Galeri HP (Tanpa capture) */}
+            {/* Hidden Input 2: Galeri HP (Mencegah buka kamera langsung, buka galeri/file manager) */}
             <input
               ref={galleryInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/jpg"
               onChange={handlePhotoSelect}
               className="hidden"
             />
@@ -313,15 +356,15 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
                 <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => galleryInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition"
+                    onClick={triggerGallery}
+                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition cursor-pointer"
                   >
                     🖼️ Pilih Galeri
                   </button>
                   <button
                     type="button"
-                    onClick={() => cameraInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shadow-md transition"
+                    onClick={triggerCamera}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shadow-md transition cursor-pointer"
                   >
                     📸 Kamera
                   </button>
@@ -332,8 +375,8 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
                 {/* Button 1: Galeri HP */}
                 <button
                   type="button"
-                  onClick={() => galleryInputRef.current?.click()}
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/60 hover:bg-blue-100/80 active:scale-95 transition text-center space-y-1.5 group"
+                  onClick={triggerGallery}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/60 hover:bg-blue-100/80 active:scale-95 transition text-center space-y-1.5 group cursor-pointer"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs group-hover:scale-105 transition">
                     <ImageIcon className="w-5 h-5" />
@@ -347,8 +390,8 @@ export const EditBelanjaModal: React.FC<EditBelanjaModalProps> = ({
                 {/* Button 2: Kamera HP */}
                 <button
                   type="button"
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100/80 active:scale-95 transition text-center space-y-1.5 group"
+                  onClick={triggerCamera}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100/80 active:scale-95 transition text-center space-y-1.5 group cursor-pointer"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white shadow-xs group-hover:scale-105 transition">
                     <Camera className="w-5 h-5" />

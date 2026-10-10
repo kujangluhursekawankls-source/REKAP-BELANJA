@@ -134,7 +134,7 @@ export function generateRekapPDF(transactions: Transaction[]): PDFGenerationResu
   const tableData = sortedTransactions.map((t, index) => [
     (index + 1).toString(),
     `#${t.no}`,
-    t.namaSekolah || '-',
+    t.namaSekolah ? `${t.namaSekolah}${t.tanggal ? `\n(${t.tanggal})` : ''}` : '-',
     t.kategori || '-',
     formatRupiah(t.jumlah),
     t.fotoNota ? 'Ada Nota' : 'Tanpa Nota',

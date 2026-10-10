@@ -632,6 +632,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <span className="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-[11px] font-semibold text-slate-600">
                         {t.kategori}
                       </span>
+                      {t.tanggal && (
+                        <span className="text-[11px] font-medium text-slate-400">
+                          • {t.tanggal}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

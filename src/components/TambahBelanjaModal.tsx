@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Upload, Camera, Check, AlertCircle, Building2, Tag, DollarSign, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, Camera, Check, AlertCircle, Building2, Tag, DollarSign, Image as ImageIcon, Calendar } from 'lucide-react';
 import { formatNumberWithDots, parseRupiahInput, generateReceiptFileName, formatRupiah } from '../utils/googleDrive';
 
 interface TambahBelanjaModalProps {
@@ -12,6 +12,7 @@ interface TambahBelanjaModalProps {
     fotoBase64: string;
     fileName: string;
     mimeType: string;
+    tanggal?: string;
   }) => Promise<void>;
   onClose: () => void;
 }
@@ -37,6 +38,9 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSchools, setFilteredSchools] = useState<string[]>([]);
   
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [tanggal, setTanggal] = useState(todayStr);
+
   const [selectedCategory, setSelectedCategory] = useState('ATK');
   const [customCategory, setCustomCategory] = useState('');
 
@@ -95,10 +99,24 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
 
       // Auto generate filename: NO_NAMA_SEKOLAH_KATEGORI_TANGGAL.jpg
       const categoryToUse = selectedCategory === 'Lainnya' ? (customCategory || 'LAINNYA') : selectedCategory;
-      const autoName = generateReceiptFileName(nextNo, namaSekolah, categoryToUse);
+      const autoName = generateReceiptFileName(nextNo, namaSekolah, categoryToUse, tanggal);
       setFotoFileName(autoName);
     };
     reader.readAsDataURL(file);
+  };
+
+  const triggerCamera = () => {
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+      cameraInputRef.current.click();
+    }
+  };
+
+  const triggerGallery = () => {
+    if (galleryInputRef.current) {
+      galleryInputRef.current.value = '';
+      galleryInputRef.current.click();
+    }
   };
 
   // Handle Form Submit
@@ -112,6 +130,10 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
     // STEP 1: Validation
     if (!finalNamaSekolah) {
       setErrorMsg('Nama Sekolah wajib diisi.');
+      return;
+    }
+    if (!tanggal) {
+      setErrorMsg('Tanggal Transaksi wajib diisi.');
       return;
     }
     if (!finalKategori) {
@@ -128,7 +150,7 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
     }
 
     const categoryToUse = finalKategori;
-    const autoFileName = generateReceiptFileName(nextNo, finalNamaSekolah, categoryToUse);
+    const autoFileName = generateReceiptFileName(nextNo, finalNamaSekolah, categoryToUse, tanggal);
 
     try {
       setIsSaving(true);
@@ -136,6 +158,7 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
         namaSekolah: finalNamaSekolah,
         kategori: finalKategori,
         jumlah: jumlahNumeric,
+        tanggal,
         fotoBase64,
         fileName: autoFileName,
         mimeType: fotoMimeType,
@@ -223,7 +246,27 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
             </p>
           </div>
 
-          {/* 2. KATEGORI BELANJA */}
+          {/* 2. TANGGAL TRANSAKSI */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              TANGGAL TRANSAKSI <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <Calendar className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
+              <input
+                type="date"
+                value={tanggal}
+                onChange={(e) => setTanggal(e.target.value)}
+                required
+                className="w-full rounded-xl border border-slate-200 pl-10 pr-3.5 py-2.5 text-sm font-semibold text-slate-800 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-slate-500">
+              {tanggal ? new Date(tanggal + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Pilih tanggal belanja'}
+            </p>
+          </div>
+
+          {/* 3. KATEGORI BELANJA */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               KATEGORI BELANJA <span className="text-rose-500">*</span>
@@ -287,7 +330,7 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
               FOTO NOTA <span className="text-rose-500">*</span>
             </label>
 
-            {/* Hidden Input 1: Kamera HP */}
+            {/* Hidden Input 1: Kamera HP (Capture environment untuk direct kamera HP) */}
             <input
               ref={cameraInputRef}
               type="file"
@@ -297,11 +340,11 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
               className="hidden"
             />
 
-            {/* Hidden Input 2: Galeri HP (Tanpa capture) */}
+            {/* Hidden Input 2: Galeri HP (Mencegah buka kamera langsung, buka galeri/file manager) */}
             <input
               ref={galleryInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/jpg"
               onChange={handlePhotoSelect}
               className="hidden"
             />
@@ -312,8 +355,8 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
                   {/* Button 1: Galeri HP */}
                   <button
                     type="button"
-                    onClick={() => galleryInputRef.current?.click()}
-                    className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/60 hover:bg-blue-100/80 active:scale-95 transition text-center space-y-1.5 group"
+                    onClick={triggerGallery}
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50/60 hover:bg-blue-100/80 active:scale-95 transition text-center space-y-1.5 group cursor-pointer"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs group-hover:scale-105 transition">
                       <ImageIcon className="w-5 h-5" />
@@ -327,8 +370,8 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
                   {/* Button 2: Kamera HP */}
                   <button
                     type="button"
-                    onClick={() => cameraInputRef.current?.click()}
-                    className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100/80 active:scale-95 transition text-center space-y-1.5 group"
+                    onClick={triggerCamera}
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100/80 active:scale-95 transition text-center space-y-1.5 group cursor-pointer"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white shadow-xs group-hover:scale-105 transition">
                       <Camera className="w-5 h-5" />
@@ -353,15 +396,15 @@ export const TambahBelanjaModal: React.FC<TambahBelanjaModalProps> = ({
                 <div className="absolute top-4 right-4 flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={() => galleryInputRef.current?.click()}
-                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-md transition"
+                    onClick={triggerGallery}
+                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-md transition cursor-pointer"
                   >
                     🖼️ Galeri
                   </button>
                   <button
                     type="button"
-                    onClick={() => cameraInputRef.current?.click()}
-                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold shadow-md transition"
+                    onClick={triggerCamera}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold shadow-md transition cursor-pointer"
                   >
                     📸 Kamera
                   </button>

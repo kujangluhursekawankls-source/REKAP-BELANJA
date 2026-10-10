@@ -21,7 +21,7 @@ function getRekapSheet(ss) {
   }
 
   sheet = ss.insertSheet("REKAP-BELANJA");
-  sheet.appendRow(["NO", "NAMA SEKOLAH", "KATEGORI BELANJA", "JUMLAH", "FOTO NOTA ATAU LINK"]);
+  sheet.appendRow(["NO", "NAMA SEKOLAH", "KATEGORI BELANJA", "JUMLAH", "FOTO NOTA ATAU LINK", "TANGGAL"]);
   return sheet;
 }
 
@@ -87,12 +87,25 @@ function doGet(e) {
         for (let i = 1; i < values.length; i++) {
           let row = values[i];
           if (row[0] !== "" || row[1] !== "") {
+            let rowDate = "";
+            if (row.length > 5 && row[5]) {
+              try {
+                if (row[5] instanceof Date) {
+                  rowDate = Utilities.formatDate(row[5], "GMT+7", "yyyy-MM-dd");
+                } else {
+                  rowDate = String(row[5]).trim();
+                }
+              } catch (_) {
+                rowDate = String(row[5]).trim();
+              }
+            }
             transactions.push({
               no: row[0],
               namaSekolah: String(row[1] || ""),
               kategori: String(row[2] || ""),
               jumlah: Number(row[3]) || 0,
-              fotoNota: String(row[4] || "")
+              fotoNota: String(row[4] || ""),
+              tanggal: rowDate
             });
           }
         }
@@ -158,11 +171,14 @@ function doPost(e) {
         fileUrl = uploadPhotoToDrive(data);
       }
 
-      // UBAH BARIS YANG SAMA (Col B: Sekolah, Col C: Kategori, Col D: Jumlah, Col E: Foto)
+      // UBAH BARIS YANG SAMA (Col B: Sekolah, Col C: Kategori, Col D: Jumlah, Col E: Foto, Col F: Tanggal)
       sheet.getRange(targetRowIndex, 2).setValue(String(data.namaSekolah).trim());
       sheet.getRange(targetRowIndex, 3).setValue(String(data.kategori).trim());
       sheet.getRange(targetRowIndex, 4).setValue(Number(data.jumlah) || 0);
       sheet.getRange(targetRowIndex, 5).setValue(fileUrl);
+      if (data.tanggal) {
+        sheet.getRange(targetRowIndex, 6).setValue(String(data.tanggal).trim());
+      }
 
       return ContentService.createTextOutput(JSON.stringify({
         success: true,
@@ -172,7 +188,8 @@ function doPost(e) {
           namaSekolah: data.namaSekolah,
           kategori: data.kategori,
           jumlah: Number(data.jumlah) || 0,
-          fotoNota: fileUrl
+          fotoNota: fileUrl,
+          tanggal: data.tanggal || ""
         }
       })).setMimeType(ContentService.MimeType.JSON);
     }
@@ -236,13 +253,15 @@ function doPost(e) {
     }
     const newNo = maxNo + 1;
     
-    // Append Row: Col A: NO | Col B: NAMA SEKOLAH | Col C: KATEGORI BELANJA | Col D: JUMLAH | Col E: FOTO NOTA ATAU LINK
+    // Append Row: Col A: NO | Col B: NAMA SEKOLAH | Col C: KATEGORI BELANJA | Col D: JUMLAH | Col E: FOTO NOTA ATAU LINK | Col F: TANGGAL
+    const txTanggal = data.tanggal || Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
     sheet.appendRow([
       newNo,
       data.namaSekolah,
       data.kategori,
       Number(data.jumlah) || 0,
-      fileUrl
+      fileUrl,
+      txTanggal
     ]);
     
     return ContentService.createTextOutput(JSON.stringify({
@@ -253,7 +272,8 @@ function doPost(e) {
         namaSekolah: data.namaSekolah,
         kategori: data.kategori,
         jumlah: Number(data.jumlah) || 0,
-        fotoNota: fileUrl
+        fotoNota: fileUrl,
+        tanggal: txTanggal
       }
     })).setMimeType(ContentService.MimeType.JSON);
 

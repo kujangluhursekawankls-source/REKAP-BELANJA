@@ -4,6 +4,7 @@ export interface Transaction {
   kategori: string;
   jumlah: number;
   fotoNota: string;
+  tanggal?: string;
 }
 
 export interface School {
@@ -17,6 +18,7 @@ export interface AddTransactionPayload {
   fotoBase64: string;
   fileName: string;
   mimeType: string;
+  tanggal?: string;
   scriptUrl?: string;
 }
 

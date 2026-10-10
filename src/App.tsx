@@ -134,7 +134,16 @@ export default function App() {
     try {
       const json = await callAppsScriptApi('/api/rekap-belanja', url, 'GET', { action: 'getRekapBelanja' });
       if (json && json.success && Array.isArray(json.data)) {
-        setTransactions(json.data);
+        let storedDates: Record<string, string> = {};
+        try {
+          storedDates = JSON.parse(localStorage.getItem('REKAP_BELANJA_TX_DATES') || '{}');
+        } catch (_) {}
+
+        const mapped = json.data.map((t: any) => ({
+          ...t,
+          tanggal: t.tanggal || storedDates[t.no] || undefined
+        }));
+        setTransactions(mapped);
       } else {
         setTransactions([]);
       }
@@ -167,6 +176,7 @@ export default function App() {
     fotoBase64: string;
     fileName: string;
     mimeType: string;
+    tanggal?: string;
   }) => {
     const result = await callAppsScriptApi('/api/tambah-belanja', scriptUrl, 'POST', payload);
 
@@ -175,10 +185,11 @@ export default function App() {
     }
 
     showToast('Belanja berhasil disimpan.', 'success');
-    if (result && result.data && result.data.no) {
+    const createdNo = result && result.data && result.data.no;
+    if (createdNo) {
       try {
         const dates = JSON.parse(localStorage.getItem('REKAP_BELANJA_TX_DATES') || '{}');
-        dates[result.data.no] = new Date().toISOString();
+        dates[createdNo] = payload.tanggal || new Date().toISOString().split('T')[0];
         localStorage.setItem('REKAP_BELANJA_TX_DATES', JSON.stringify(dates));
       } catch (_) {}
     }
@@ -192,6 +203,7 @@ export default function App() {
     namaSekolah: string;
     kategori: string;
     jumlah: number;
+    tanggal?: string;
     fotoBase64?: string;
     fileName?: string;
     mimeType?: string;
@@ -204,6 +216,14 @@ export default function App() {
 
     if (!result || !result.success) {
       throw new Error(result?.message || 'Gagal memperbarui transaksi');
+    }
+
+    if (payload.tanggal && payload.no) {
+      try {
+        const dates = JSON.parse(localStorage.getItem('REKAP_BELANJA_TX_DATES') || '{}');
+        dates[payload.no] = payload.tanggal;
+        localStorage.setItem('REKAP_BELANJA_TX_DATES', JSON.stringify(dates));
+      } catch (_) {}
     }
 
     showToast(`Transaksi #${payload.no} berhasil diperbarui.`, 'success');

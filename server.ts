@@ -115,7 +115,7 @@ app.get('/api/rekap-belanja', async (req, res) => {
 
 // API Route: POST Tambah Belanja
 app.post('/api/tambah-belanja', async (req, res) => {
-  const { namaSekolah, kategori, jumlah, fotoBase64, fileName, mimeType, scriptUrl: bodyScriptUrl } = req.body;
+  const { namaSekolah, kategori, jumlah, fotoBase64, fileName, mimeType, tanggal, scriptUrl: bodyScriptUrl } = req.body;
   const scriptUrl = getAppsScriptUrl(bodyScriptUrl);
 
   if (!namaSekolah || !kategori || !jumlah || !fotoBase64) {
@@ -139,7 +139,8 @@ app.post('/api/tambah-belanja', async (req, res) => {
       jumlah: Number(jumlah) || 0,
       fotoBase64,
       fileName: fileName || `NOTA_${Date.now()}.jpg`,
-      mimeType: mimeType || 'image/jpeg'
+      mimeType: mimeType || 'image/jpeg',
+      tanggal: tanggal || new Date().toISOString().split('T')[0]
     };
 
     const result = await fetchAppsScript(scriptUrl, 'POST', payload);
@@ -155,7 +156,7 @@ app.post('/api/tambah-belanja', async (req, res) => {
 
 // API Route: POST Edit Belanja
 app.post('/api/edit-belanja', async (req, res) => {
-  const { no, namaSekolah, kategori, jumlah, fotoBase64, fileName, mimeType, existingFotoUrl, scriptUrl: bodyScriptUrl } = req.body;
+  const { no, namaSekolah, kategori, jumlah, tanggal, fotoBase64, fileName, mimeType, existingFotoUrl, scriptUrl: bodyScriptUrl } = req.body;
   const scriptUrl = getAppsScriptUrl(bodyScriptUrl);
 
   if (!no || !namaSekolah || !kategori || !jumlah) {
@@ -179,6 +180,7 @@ app.post('/api/edit-belanja', async (req, res) => {
       namaSekolah: String(namaSekolah).trim(),
       kategori: String(kategori).trim(),
       jumlah: Number(jumlah) || 0,
+      tanggal: tanggal || undefined,
       fotoBase64: fotoBase64 || undefined,
       fileName: fileName || `NOTA_${no}_EDIT.jpg`,
       mimeType: mimeType || 'image/jpeg',

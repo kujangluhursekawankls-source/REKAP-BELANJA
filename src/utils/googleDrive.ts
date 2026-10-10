@@ -67,9 +67,12 @@ export function formatNumberWithDots(amount: number): string {
 /**
  * Generates automated receipt filename following NO_NAMA_SEKOLAH_KATEGORI_TANGGAL.jpg format
  */
-export function generateReceiptFileName(no: number | string, namaSekolah: string, kategori: string): string {
+export function generateReceiptFileName(no: number | string, namaSekolah: string, kategori: string, tanggal?: string): string {
   const sanitize = (text: string) => text.toUpperCase().replace(/[^A-Z0-9]/g, '_').replace(/_+/g, '_').trim();
-  const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+  let dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+  if (tanggal && /^\d{4}-\d{2}-\d{2}$/.test(tanggal)) {
+    dateStr = tanggal.replace(/-/g, '');
+  }
   const cleanSchool = sanitize(namaSekolah || 'SEKOLAH');
   const cleanCategory = sanitize(kategori || 'BELANJA');
   

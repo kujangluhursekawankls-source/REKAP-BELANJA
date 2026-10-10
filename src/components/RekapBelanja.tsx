@@ -284,9 +284,16 @@ export const RekapBelanja: React.FC<RekapBelanjaProps> = ({
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700 font-extrabold text-[11px]">
                           #{t.no}
                         </span>
-                        <h4 className="text-sm font-bold text-slate-900 truncate">
-                          {t.namaSekolah}
-                        </h4>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-bold text-slate-900 truncate">
+                            {t.namaSekolah}
+                          </h4>
+                          {t.tanggal && (
+                            <p className="text-[11px] font-medium text-slate-500">
+                              📅 {t.tanggal}
+                            </p>
+                          )}
+                        </div>
                       </div>
 
                       {/* Right Action Icons: Thumbnail + Edit + Delete */}
@@ -371,7 +378,12 @@ export const RekapBelanja: React.FC<RekapBelanjaProps> = ({
 
                         {/* NAMA SEKOLAH */}
                         <td className="py-3.5 px-4 font-bold text-slate-900">
-                          {t.namaSekolah}
+                          <div>{t.namaSekolah}</div>
+                          {t.tanggal && (
+                            <div className="text-[11px] font-medium text-slate-500 mt-0.5">
+                              📅 {t.tanggal}
+                            </div>
+                          )}
                         </td>
 
                         {/* KATEGORI BELANJA */}
