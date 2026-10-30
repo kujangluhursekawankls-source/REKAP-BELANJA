@@ -1,17 +1,15 @@
 import React from 'react';
-import { BookOpen, LayoutDashboard, ReceiptText, Settings, Coffee } from 'lucide-react';
+import { BookOpen, Settings, Coffee } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'dashboard' | 'rekap';
-  onTabChange: (tab: 'dashboard' | 'rekap') => void;
+  activeTab?: 'dashboard' | 'rekap';
+  onTabChange?: (tab: 'dashboard' | 'rekap') => void;
   onOpenPanduanModal: () => void;
   onOpenSettingsModal: () => void;
   onOpenKopiModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  activeTab,
-  onTabChange,
   onOpenPanduanModal,
   onOpenSettingsModal,
   onOpenKopiModal,
@@ -37,9 +35,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <h1 className="text-base sm:text-lg font-black text-slate-900 leading-tight tracking-tight">
                 CV ARZLAN ADYATAMA
               </h1>
-              <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
-                Sistem Rekap Belanja Sekolah & Foto Nota
-              </p>
             </div>
           </div>
 
@@ -76,34 +71,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
         </div>
-
-        {/* Tab Sub-navigation Bar */}
-        <div className="flex items-center gap-6 border-t border-slate-100 text-xs sm:text-sm font-semibold text-slate-500">
-          <button
-            onClick={() => onTabChange('dashboard')}
-            className={`flex items-center gap-2 py-3 border-b-2 transition ${
-              activeTab === 'dashboard'
-                ? 'border-blue-600 text-blue-600 font-bold'
-                : 'border-transparent hover:text-slate-800'
-            }`}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            <span>DASHBOARD</span>
-          </button>
-
-          <button
-            onClick={() => onTabChange('rekap')}
-            className={`flex items-center gap-2 py-3 border-b-2 transition ${
-              activeTab === 'rekap'
-                ? 'border-blue-600 text-blue-600 font-bold'
-                : 'border-transparent hover:text-slate-800'
-            }`}
-          >
-            <ReceiptText className="w-4 h-4" />
-            <span>REKAP BELANJA</span>
-          </button>
-        </div>
-
       </div>
     </header>
   );

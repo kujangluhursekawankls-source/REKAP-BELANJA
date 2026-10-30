@@ -3,6 +3,7 @@ import { Transaction } from './types';
 import { Navbar } from './components/Navbar';
 import { Dashboard } from './components/Dashboard';
 import { RekapBelanja } from './components/RekapBelanja';
+import { BottomNav } from './components/BottomNav';
 import { TambahBelanjaModal } from './components/TambahBelanjaModal';
 import { EditBelanjaModal } from './components/EditBelanjaModal';
 import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
@@ -273,7 +274,7 @@ export default function App() {
       />
 
       {/* Main Content View Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-28">
         
         {!scriptUrl && (
           <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -399,9 +400,16 @@ export default function App() {
         />
       )}
 
-      <footer className="mt-12 border-t border-slate-200/80 py-6 text-center text-xs text-slate-400">
-        <p>CV ARZLAN ADYATAMA — PWA Sistem Pencatatan Belanja Sekolah & Foto Nota</p>
+      <footer className="mt-12 border-t border-slate-200/80 py-6 text-center text-xs text-slate-400 pb-28">
+        <p>CV ARZLAN ADYATAMA</p>
       </footer>
+
+      {/* Fixed Bottom Navigation for Dashboard and Rekap Belanja */}
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={(tab) => setActiveTab(tab)}
+        rekapCount={transactions.length}
+      />
 
     </div>
   );

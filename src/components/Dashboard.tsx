@@ -203,15 +203,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             />
           </div>
           <div className="space-y-1 min-w-0">
-            <span className="inline-block px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-extrabold uppercase tracking-wider border border-rose-500/30">
-              Aplikasi Resmi
-            </span>
             <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight truncate">
               CV ARZLAN ADYATAMA
             </h2>
-            <p className="text-xs text-slate-300 leading-snug">
-              Sistem Rekap Belanja Sekolah, Pengadaan & Penyimpanan Foto Nota
-            </p>
           </div>
         </div>
 
@@ -316,9 +310,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {namaBulanBerjalan}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Ringkasan real-time pengeluaran & pantauan alokasi budget belanja
-              </p>
             </div>
           </div>
 
@@ -581,7 +572,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <h3 className="text-base font-bold text-slate-900">Belanja Terbaru</h3>
-            <p className="text-xs text-slate-500">Ringkasan transaksi belanja sekolah terbaru</p>
           </div>
           <div className="flex items-center gap-2">
             {transactions.length > 0 && (
